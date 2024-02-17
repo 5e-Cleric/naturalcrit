@@ -23,6 +23,15 @@ passport.deserializeUser((id, done) => {
 	});
 });
 
+//In order to test in local, create a file in the config folder named `local.json` and add there:
+/*
+{
+	"authentication_token_secret" : "secret",
+    "googleClientId" : "<your google client Id>",
+    "googleClientSecret" : "<your google client secret>"
+}
+we have this data in heroku, but for security reasons, we won't share it out of the team.
+*/
 
 passport.use(new JwtStrategy({
 		jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
