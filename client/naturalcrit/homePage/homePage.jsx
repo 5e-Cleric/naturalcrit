@@ -5,7 +5,7 @@ const cx    = require('classnames');
 const NaturalCritIcon = require('naturalcrit/svg/naturalcrit.svg.jsx');
 
 const HomebrewIcon = require('naturalcrit/svg/homebrew.svg.jsx');
-const TPKIcon = require('naturalcrit/svg/tpk.svg.jsx');
+const AxeIcon = require('naturalcrit/svg/axe.svg.jsx');
 const BadgeIcon = require('naturalcrit/svg/badge.svg.jsx');
 
 
@@ -34,11 +34,11 @@ const HomePage = React.createClass({
 						beta : false
 					},
 					{
-						id : 'tpk',
-						path : 'http://tpk.naturalcrit.com',
-						name : 'Total Player Knoller',
-						icon : <TPKIcon />,
-						desc : 'Effortless custom character sheets',
+						id : 'axe',
+						path : 'http://axe.naturalcrit.com',
+						name : 'Axe Character Sheets',
+						icon : <AxeIcon />,
+						desc : 'Automated custom character sheets',
 
 						show : false,
 						beta : true
