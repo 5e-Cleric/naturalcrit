@@ -1,65 +1,69 @@
-const router = require('express').Router();
-const passport = require('passport');
-const token = require('./token.js');
+import { Router } from 'express';
+import passport from 'passport';
+import * as token from './token.js';
+// Assuming AccountModel is imported from the right module
+import { AccountModel } from './account.model.js'; 
 
-//TODO: MERGE from ACCOUNT.API.JS then probably rename ACCOUNT.API.JS
+const router = Router();
 
 function generateUserToken(req, res) {
   const accessToken = token.generateAccessToken(req, res);
-	console.log("Successfully Generated JWT after Google Login");
-	console.log(accessToken);
+  console.log("Successfully Generated JWT after Google Login");
+  console.log(accessToken);
   return accessToken;
-	//res.render('authenticated.html', {
-  //  token: accessToken
-  //});
 }
-//Bumpo these out to a api file
-router.post('/login', (req, res) => {
-	const user = req.body.user;
-	const pass = req.body.pass;
 
-	AccountModel.login(user, pass)
-		.then((jwt) => {
-			return res.json(jwt);
-		})
-		.catch((err) => {
-			return res.status(err.status || 500).json(err);
-		});
+// Auth login
+router.post('/login', async (req, res) => {
+  const { user, pass } = req.body;
+
+  try {
+    const jwt = await AccountModel.login(user, pass);
+    res.json(jwt);
+  } catch (err) {
+    res.status(err.status || 500).json(err);
+  }
 });
-// auth login
+
+// Render login page
 router.get('/login', (req, res) => {
-	res.render('login');
+  res.render('login');
 });
 
-// auth logout
+// Handle logout
 router.get('/logout', (req, res) => {
-	// handle with passport
-	res.send('logging out');
+  // handle with passport
+  res.send('logging out');
 });
 
-// auth with google - goes to google authentication popup
+// Auth with Google - Initiates Google authentication
 router.get('/google',
-	passport.authenticate('google', {
-    // display: 'page',
-		session: false,
-		scope: ['profile', 'https://www.googleapis.com/auth/drive.file'],
-    accessType: 'offline', // uncomment these if refreshToken is not sent
+  passport.authenticate('google', {
+    session: false,
+    scope: ['profile', 'https://www.googleapis.com/auth/drive.file'],
+    accessType: 'offline', // Uncomment these if refreshToken is not sent
     prompt: 'consent'
-}));
+  })
+);
 
-// callback route for google after the authentication popup
+// Callback route for Google after authentication
 router.get('/google/redirect',
-  //Check if there is an existing local user
-  passport.authenticate('google', { session: false }, ),
+  passport.authenticate('google', { session: false }),
   (req, res, next) => {
-    if(!req.user.username) {  //stay on the page if we still need local sign in
+    if (!req.user.username) { // Stay on the page if we still need local sign in
       return next();
     }
     const jwt = generateUserToken(req, res);
-    console.log("about to redirect");
+    console.log("About to redirect");
     const JWTToken = jwt;
-    res.cookie('nc_session', JWTToken, {maxAge: 1000*60*60*24*365, path: '/', sameSite: 'lax', domain: '.naturalcrit.com'});
+    res.cookie('nc_session', JWTToken, {
+      maxAge: 1000 * 60 * 60 * 24 * 365,
+      path: '/',
+      sameSite: 'lax',
+      domain: '.naturalcrit.com'
+    });
     res.redirect('/success');
-  });
+  }
+);
 
-module.exports = router;
+export default router;

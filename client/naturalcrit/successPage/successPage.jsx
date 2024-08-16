@@ -1,62 +1,39 @@
-const React = require('react');
-const _     = require('lodash');
-const cx    = require('classnames');
+import React, { useEffect } from 'react';
 
-const NaturalCritIcon = require('naturalcrit/svg/naturalcrit.svg.jsx');
-const AccountActions = require('../account.actions.js');
+const NaturalCritSVG= require('naturalcrit/svg/naturalcrit.svg.jsx');
 
 const RedirectLocation = 'NC-REDIRECT-URL';
 
-const SuccessPage = React.createClass({
-	getDefaultProps: function() {
-		return {
-			redirect : '',
-			user : null
-		};
-	},
-	getInitialState: function() {
-		return {
-			view : 'login', //or 'signup'
-			visible : false,
+const SuccessPage = ({ redirect = '', user = null }) => {
+    useEffect(() => {
+        const redirectURL =
+            window.sessionStorage.getItem(RedirectLocation) || '/';
+        window.sessionStorage.removeItem(RedirectLocation);
+        const timeoutId = setTimeout(() => {
+            window.location = redirectURL;
+        }, 1500);
 
-			username : '',
-			password : '',
+        return () => clearTimeout(timeoutId); // Cleanup timeout if component unmounts
+    }, []);
 
-			processing : false,
-			checkingUsername : false,
-			redirecting : false,
+    return (
+        <div className="loginPage">
+            <div className="logo">
+                <NaturalCritSVG/>
+                <span className="name">
+                    Natural
+                    <span className="crit">Crit</span>
+                </span>
+            </div>
 
-			usernameExists : false,
+            <div className="content">
+                <p>Successfully logged in!</p>
+                <br />
+                <br />
+                <p>Redirecting...</p>
+            </div>
+        </div>
+    );
+};
 
-			errors : null,
-			success : false,
-		};
-	},
-	componentDidMount: function() {
-		const redirectURL = window.sessionStorage.getItem(RedirectLocation) || '/';
-		window.sessionStorage.removeItem(RedirectLocation);
-		setTimeout(function(){window.location=redirectURL;}, 1500);
- },
- render : function(){
-	 return <div className='loginPage'>
-		 <div className='logo'>
-			 <NaturalCritIcon />
-			 <span className='name'>
-				 Natural
-				 <span className='crit'>Crit</span>
-			 </span>
-		 </div>
-
-
-		 <div className='content'>
-		 <p>Successfully logged in!</p>
-		 <br />
-		 <br />
-		 <p>Redirecting...</p>
-		 </div>
-
-	 </div>
- }
-});
-
-module.exports = SuccessPage;
+export default SuccessPage;

@@ -1,83 +1,98 @@
 'use strict';
 
-const _ = require('lodash');
-require('app-module-path').addPath('./shared');
+import _ from 'lodash';
+import 'app-module-path/register';  // Equivalent to .addPath('./shared')
 
-const jwt = require('jwt-simple');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const express = require("express");
-const authRoutes = require('./server/auth_routes');
-//const userRoutes = require('./server/profile_routes');
-const passportSetup = require('./server/passport_setup');
-const passport = require('passport');
+import jwt from 'jwt-simple';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import express from 'express';
+import config from 'nconf';
+import mongoose from 'mongoose';
+import passport from 'passport';
+import authRoutes from './server/auth_routes';
+// import userRoutes from './server/profile_routes';  // Uncomment if needed
+import passportSetup from './server/passport_setup';
+import accountApi from './server/account.api.js';
+import render from 'vitreum/steps/render';
+import renderTemplate from './client/template.js';
+
 const app = express();
 
-app.use(express.static(__dirname + '/build'));
+// Middleware setup
+app.use(express.static(`${__dirname}/build`));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-const config = require('nconf')
-	.argv()
-	.env({ lowerCase: true })
-	.file('environment', { file: `config/${process.env.NODE_ENV}.json` })
-	.file('defaults', { file: 'config/default.json' });
+// Configuration setup
+config
+  .argv()
+  .env({ lowerCase: true })
+  .file('environment', { file: `config/${process.env.NODE_ENV}.json` })
+  .file('defaults', { file: 'config/default.json' });
 
-
-//DB
-const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI || 'mongodb://localhost/naturalcrit', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
-mongoose.connection.on('error', () => { console.log(">>>ERROR: Run Mongodb.exe ya goof!") });
-
-//// initialize passport
-//app.use(passport.initialize());
-app.use((req, res, next)=>{
-	if(req.cookies && req.cookies.nc_session){
-		try{
-			req.user = jwt.decode(req.cookies.nc_session, config.get('authentication_token_secret'));
-		}catch(e){
-			console.log("Couldn't find a current logged-in user");
-			console.error(e);
-		}
-	}
-	return next();
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI || 'mongodb://localhost/naturalcrit', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true
 });
 
-//Load in account api Routes
-app.use(require('./server/account.api.js'));
+mongoose.connection.on('error', () => {
+  console.error(">>>ERROR: Run Mongodb.exe ya goof!");
+});
 
-// set up routes
+// Passport setup
+// app.use(passport.initialize());  // Uncomment if passport setup is used
+
+// User authentication middleware
+app.use((req, res, next) => {
+  if (req.cookies && req.cookies.nc_session) {
+    try {
+      req.user = jwt.decode(req.cookies.nc_session, config.get('authentication_token_secret'));
+    } catch (e) {
+      console.error("Couldn't find a current logged-in user");
+      console.error(e);
+    }
+  }
+  return next();
+});
+
+// API Routes
+app.use(accountApi);
 app.use('/auth', authRoutes);
-//app.use('/user', userRoutes);
+// app.use('/user', userRoutes);  // Uncomment if userRoutes are needed
 
-//Homebrew Redirect
+// Homebrew Redirect
 app.all('/homebrew*', (req, res) => {
-	return res.redirect(302, 'https://homebrewery.naturalcrit.com' + req.url.replace('/homebrew', ''));
+  res.redirect(302, `https://homebrewery.naturalcrit.com${req.url.replace('/homebrew', '')}`);
 });
 
+// Render routes
+app.get('/badges', (req, res) => {
+  render('badges', renderTemplate, { url: req.url })
+    .then(page => res.send(page))
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
+});
 
-const render = require('vitreum/steps/render');
-const templateFn = require('./client/template.js');
-
-app.get('/badges', (req, res)=>{
-	render('badges', templateFn, { url : req.url })
-		.then((page) => res.send(page))
-		.catch((err) => console.log(err));
-})
-
-//Render Main Page
 app.get('*', (req, res) => {
-	render('main', templateFn, {
-			url : req.url,
-			user : req.user,
-			//authToken : authToken,
-			domain : config.get('domain')
-		})
-		.then((page) => res.send(page))
-		.catch((err) => console.log(err));
+  render('main', renderTemplate, {
+    url: req.url,
+    user: req.user,
+    domain: config.get('domain')
+  })
+    .then(page => res.send(page))
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
-
-var port = process.env.PORT || 8010;
-app.listen(port);
-console.log('Listening on localhost:' + port);
+// Start the server
+const port = process.env.PORT || 8010;
+app.listen(port, () => {
+  console.log(`Listening on localhost:${port}`);
+});

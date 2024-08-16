@@ -1,22 +1,19 @@
-module.exports = function(vitreum){
-	return `
-<!DOCTYPE html>
-<html>
+export default function renderTemplate(vitreum) {
+    return `
+  <!DOCTYPE html>
+  <html>
 	<head>
-		<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-		<link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700" rel="stylesheet" type="text/css" />
-		<link rel="icon" href="/assets/main/favicon.ico" type="image/x-icon" />
-
-		<title>NaturalCrit - D&D Tools</title>
-		${vitreum.head}
+	  <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+	  <link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700" rel="stylesheet" type="text/css" />
+	  <link rel="icon" href="/assets/main/favicon.ico" type="image/x-icon" />
+  
+	  <title>NaturalCrit - D&D Tools</title>
+	  ${vitreum.head}
 	</head>
 	<body>
-		<main id="reactRoot">${vitreum.body}</main>
+	  <main id="reactRoot">${vitreum.body}</main>
 	</body>
 	${vitreum.js}
-</html>
-`;
+  </html>
+	`;
 }
-
-
-

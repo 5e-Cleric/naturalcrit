@@ -1,92 +1,104 @@
-const passport = require('passport');
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const JwtStrategy = require('passport-jwt').Strategy;
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const Account = require('./account.model.js').model;
+import passport from 'passport';
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Account } from './account.model.js';
+import nconf from 'nconf';
 
 // Load configuration values
-const config = require('nconf')
-	.argv()
-	.env({ lowerCase: true })	// Load environment variables
-	.file('environment', { file: `config/${process.env.NODE_ENV}.json` })
-	.file('defaults', { file: 'config/default.json' });
+nconf
+    .argv()
+    .env({ lowerCase: true })
+    .file('environment', { file: `config/${process.env.NODE_ENV}.json` })
+    .file('defaults', { file: 'config/default.json' });
 
-console.log(config.get('googleClientId'));
+const config = nconf.get();
+console.log(config.googleClientId);
+
+// Initialize Passport
 passport.initialize();
 
 passport.serializeUser((user, done) => {
-	done(null, user.id);
+    done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-	User.findById(id).then((user) => {
-		done(null, user);
-	});
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await Account.findById(id);
+        done(null, user);
+    } catch (error) {
+        done(error);
+    }
 });
-
-
-passport.use(new JwtStrategy({
-		jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
-		secretOrKey: config.get('authentication_token_secret'),
-		issuer: config.get('authentication_token_issuer'),
-		audience: config.get('authentication_token_audience')
-	},
-	(payload, done) => {
-	  const user = users.getUserById(parseInt(payload.sub));
-	  if (user) {
-	      return done(null, user, payload);
-	  }
-	  return done();
-	}
-));
 
 passport.use(
-	new GoogleStrategy({ 		//options for the google strat
-		callbackURL: '/auth/google/redirect',
-		clientID: config.get('googleClientId'),
-		clientSecret: config.get('googleClientSecret'),
-		passReqToCallback: true,
-		proxy: true //Forces callbackUrl to use https if visited from https
-	},
-	(req, accessToken, refreshToken, profile, done) => {
-		Account.findOne({googleId: profile.id}).then((googleUser) => {
-			if(googleUser) { // Google Account already exists, just log in
-				googleUser.googleRefreshToken = refreshToken;
-
-				googleUser.save().then((googleUser) => {
-					googleUser.googleAccessToken  = accessToken;
-					console.log('user logged in via google: ' + googleUser);
-					return done(null, googleUser);
-				});
-			}
-			else {					// Google Account does not exist
-				if(req.user){	// If Local account exists, merge from Google Account
-					console.log("User is already logged in locally");
-					Account.findOne({username: req.user.username}).then((localUser) => {
-						// Add googleId to user
-						localUser.googleId = profile.id;
-						localUser.googleRefreshToken = refreshToken;
-
-						localUser.save((err, updatedUser) => {
-							if(err) {console.log(err); return done("err");}
-							console.log('Local user updated with Google Id: ' + updatedUser);
-							updatedUser.googleAccessToken  = accessToken;
-							console.log(updatedUser);
-							return done(null, updatedUser);
-						});
-					});
-				}
-				else{				// If Local account does not exist either, wait until user is created in googleRedirect before mergin accounts
-					console.log("not logged in locally");
-					const newAccount = new Account({
-						googleId: profile.id,
-						googleRefreshToken: refreshToken,
-						googleAccessToken: accessToken
-					});
-					req.user = newAccount;
-					return done(null, newAccount);
-				}
-			}
-		});
-	})
+    new JwtStrategy(
+        {
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: config.authentication_token_secret,
+            issuer: config.authentication_token_issuer,
+            audience: config.authentication_token_audience,
+        },
+        async (payload, done) => {
+            try {
+                const user = users.getUserById(parseInt(payload.sub));
+                if (user) {
+                    return done(null, user, payload);
+                }
+                return done(null, false);
+            } catch (error) {
+                return done(error);
+            }
+        }
+    )
 );
+
+passport.use(
+    new GoogleStrategy(
+        {
+            callbackURL: '/auth/google/redirect',
+            clientID: config.googleClientId,
+            clientSecret: config.googleClientSecret,
+            passReqToCallback: true,
+            proxy: true,
+        },
+        async (req, accessToken, refreshToken, profile, done) => {
+            try {
+                let user = await Account.findOne({ googleId: profile.id });
+
+                if (user) {
+                    user.googleRefreshToken = refreshToken;
+                    user.googleAccessToken = accessToken;
+                    await user.save();
+                    console.log('User logged in via Google:', user);
+                    return done(null, user);
+                } 
+
+                if (req.user) {
+                    const localUser = await Account.findOne({ username: req.user.username });
+                    localUser.googleId = profile.id;
+                    localUser.googleRefreshToken = refreshToken;
+                    localUser.googleAccessToken = accessToken;
+                    const updatedUser = await localUser.save();
+                    console.log('Local user updated with Google Id:', updatedUser);
+                    return done(null, updatedUser);
+                } 
+
+                console.log('Not logged in locally');
+                const newAccount = new Account({
+                    googleId: profile.id,
+                    googleRefreshToken: refreshToken,
+                    googleAccessToken: accessToken,
+                });
+                req.user = newAccount;
+                return done(null, newAccount);
+
+            } catch (error) {
+                console.error('Error handling Google login:', error);
+                return done(error);
+            }
+        }
+    )
+);
+
+// Export the initialized passport
+export default passport;

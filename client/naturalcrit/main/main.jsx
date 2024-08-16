@@ -1,74 +1,66 @@
-var React = require('react');
-var _ = require('lodash');
-var cx = require('classnames');
+import React from 'react';
+import _ from 'lodash';
+import cx from 'classnames';
 
-var NaturalCritIcon = require('naturalcrit/svg/naturalcrit.svg.jsx');
-var HomebrewIcon = require('naturalcrit/svg/homebrew.svg.jsx');
+import NaturalCritSVG from '../../../shared/naturalcrit/svg/naturalcrit.svg.jsx';
+import HomebrewSVG from '../../../shared/naturalcrit/svg/homebrew.svg.jsx';
 
-var Main = React.createClass({
-	getDefaultProps: function() {
-		return {
-			tools : [
-				{
-					id : 'homebrew',
-					path : 'https://homebrewery.naturalcrit.com',
-					name : 'The Homebrewery',
-					icon : <HomebrewIcon />,
-					desc : 'Make authentic-looking 5e homebrews using Markdown',
+const Main = () => {
+  const defaultTools = [
+    {
+      id: 'homebrew',
+      path: 'https://homebrewery.naturalcrit.com',
+      name: 'The Homebrewery',
+      icon: <HomebrewSVG/>,
+      desc: 'Make authentic-looking 5e homebrews using Markdown',
+      show: true,
+      beta: false,
+    },
+    {
+      id: 'homebrew2',
+      path: '/homebrew',
+      name: 'The Homebrewery',
+      icon: <HomebrewSVG/>,
+      desc: 'Make authentic-looking 5e homebrews using Markdown',
+      show: false,
+      beta: true,
+    },
+  ];
 
-					show : true,
-					beta : false
-				},
-				{
-					id : 'homebrew2',
-					path : '/homebrew',
-					name : 'The Homebrewery',
-					icon : <HomebrewIcon />,
-					desc : 'Make authentic-looking 5e homebrews using Markdown',
+  const renderTool = (tool) => {
+    if (!tool.show) return null;
 
-					show : false,
-					beta : true
-				},
+    return (
+      <a href={tool.path} className={cx('tool', tool.id, { beta: tool.beta })} key={tool.id}>
+        <div className='content'>
+          {tool.icon}
+          <h2>{tool.name}</h2>
+          <p>{tool.desc}</p>
+        </div>
+      </a>
+    );
+  };
 
-			]
-		};
-	},
+  const renderTools = () => {
+    return _.map(defaultTools, (tool) => renderTool(tool));
+  };
 
-	renderTool : function(tool){
-		if(!tool.show) return null;
+  return (
+    <div className='main'>
+      <div className='top'>
+        <div className='logo'>
+          <NaturalCritSVG/>
+          <span className='name'>
+            Natural<span className='crit'>Crit</span>
+          </span>
+        </div>
+        <p>Top-tier tools for the discerning DM</p>
+      </div>
+      <div className='tools'>
+        {renderTools()}
+      </div>
+    </div>
+  );
+};
 
-		return <a href={tool.path} className={cx('tool', tool.id, {beta : tool.beta})} key={tool.id}>
-			<div className='content'>
-				{tool.icon}
-				<h2>{tool.name}</h2>
-				<p>{tool.desc}</p>
-			</div>
-		</a>;
-	},
-
-	renderTools : function(){
-		return _.map(this.props.tools, (tool)=>{
-			return this.renderTool(tool);
-		});
-	},
-
-	render : function(){
-		return <div className='main'>
-			<div className='top'>
-				<div className='logo'>
-					<NaturalCritIcon />
-					<span className='name'>
-						Natural
-						<span className='crit'>Crit</span>
-					</span>
-				</div>
-				<p>Top-tier tools for the discerning DM</p>
-			</div>
-			<div className='tools'>
-				{this.renderTools()}
-			</div>
-		</div>
-	}
-});
-
-module.exports = Main;
+export default Main;
