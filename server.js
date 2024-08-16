@@ -14,7 +14,7 @@ import authRoutes from './server/auth_routes';
 // import userRoutes from './server/profile_routes';  // Uncomment if needed
 import passportSetup from './server/passport_setup';
 import accountApi from './server/account.api.js';
-import render from 'vitreum/steps/render';
+import { pack } from 'vitreum'; // Updated import
 import renderTemplate from './client/template.js';
 
 const app = express();
@@ -68,27 +68,39 @@ app.all('/homebrew*', (req, res) => {
   res.redirect(302, `https://homebrewery.naturalcrit.com${req.url.replace('/homebrew', '')}`);
 });
 
+// Load render function from the correct path
+const getRenderFunction = async () => {
+  const { render } = await pack('./path/to/your/entry/file', {
+    // Your configuration options if any
+  });
+  return render;
+};
+
 // Render routes
-app.get('/badges', (req, res) => {
-  render('badges', renderTemplate, { url: req.url })
-    .then(page => res.send(page))
-    .catch(err => {
-      console.error(err);
-      res.status(500).send('Internal Server Error');
-    });
+app.get('/badges', async (req, res) => {
+  try {
+    const render = await getRenderFunction();
+    const page = await render('badges', renderTemplate, { url: req.url });
+    res.send(page);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.get('*', (req, res) => {
-  render('main', renderTemplate, {
-    url: req.url,
-    user: req.user,
-    domain: config.get('domain')
-  })
-    .then(page => res.send(page))
-    .catch(err => {
-      console.error(err);
-      res.status(500).send('Internal Server Error');
+app.get('*', async (req, res) => {
+  try {
+    const render = await getRenderFunction();
+    const page = await render('main', renderTemplate, {
+      url: req.url,
+      user: req.user,
+      domain: config.get('domain')
     });
+    res.send(page);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Start the server

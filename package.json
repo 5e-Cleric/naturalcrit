@@ -1,47 +1,49 @@
 {
-  "name": "naturalcrit",
-  "description": "Top-tier Tools for the discerning DM",
-  "version": "2.1.0",
-  "scripts": {
-    "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js",
-    "prod": "set NODE_ENV=production&& npm run build",
-    "postinstall": "npm run build",
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=6.2.0"
-  },
-  "author": "stolksdorf",
-  "license": "BSD-2-Clause",
-  "dependencies": {
-    "app-module-path": "2.2.0",
-    "bcrypt-nodejs": "0.0.3",
-    "body-parser": "^1.20.2",
-    "classnames": "^2.2.0",
-    "cookie-parser": "^1.4.3",
-    "express": "^4.19.2",
-    "jwt-simple": "^0.5.0",
-    "lodash": "^4.17.21",
-    "mongoose": "^5.11.2",
-    "nconf": "0.8.4",
-    "passport": "0.4.1",
-    "passport-google-oauth20": "2.0.0",
-    "passport-jwt": "4.0.1",
-    "passport-local": "1.0.0",
-    "pico-router": "^1.1.1",
-    "react": "^18.3.1",
-    "react-color": "^2.13.3",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.1",
-    "superagent": "^2.3.0",
-    "vitreum": "^4.5.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
-    "@babel/preset-env": "^7.25.3",
-    "@babel/preset-react": "^7.24.7",
-    "@types/classnames": "^2.3.1"
-  }
+    "name": "naturalcrit",
+    "description": "Top-tier Tools for the discerning DM",
+    "type": "module",
+    "version": "2.1.0",
+    "scripts": {
+        "dev": "node scripts/dev.js",
+        "build": "node scripts/build.js",
+        "prod": "set NODE_ENV=production&& npm run build",
+        "postinstall": "npm run build",
+        "start": "node server.js"
+    },
+    "engines": {
+        "node": ">=6.2.0"
+    },
+    "author": "stolksdorf",
+    "license": "BSD-2-Clause",
+    "dependencies": {
+        "app-module-path": "2.2.0",
+        "bcrypt-nodejs": "0.0.3",
+        "body-parser": "^1.20.2",
+        "classnames": "^2.2.0",
+        "cookie-parser": "^1.4.3",
+        "create-react-class": "^15.7.0",
+        "express": "^4.19.2",
+        "jwt-simple": "^0.5.0",
+        "lodash": "^4.17.21",
+        "mongoose": "^5.11.2",
+        "nconf": "0.8.4",
+        "passport": "0.4.1",
+        "passport-google-oauth20": "2.0.0",
+        "passport-jwt": "4.0.1",
+        "passport-local": "1.0.0",
+        "pico-router": "^1.1.1",
+        "react": "^16.14.0",
+        "react-color": "^2.13.3",
+        "react-dom": "^16.14.0",
+        "react-router-dom": "^6.26.1",
+        "superagent": "^2.3.0",
+        "vitreum": "6.0.4"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.25.2",
+        "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+        "@babel/preset-env": "^7.25.3",
+        "@babel/preset-react": "^7.24.7",
+        "@types/classnames": "^2.3.1"
+    }
 }

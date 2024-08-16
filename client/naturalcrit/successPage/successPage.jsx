@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-const NaturalCritSVG= require('naturalcrit/svg/naturalcrit.svg.jsx');
+import NaturalCritSVG from 'naturalcrit/svg/naturalcrit.svg.jsx';
 
 const RedirectLocation = 'NC-REDIRECT-URL';
 
